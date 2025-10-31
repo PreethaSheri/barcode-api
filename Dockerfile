@@ -1,14 +1,12 @@
-# Use an official OpenJDK runtime as a base image
-FROM openjdk:17-jdk-slim
-
-# Set working directory inside the container
+# Step 1: Build the JAR using Maven
+FROM maven:3.9.9-eclipse-temurin-17 AS build
 WORKDIR /app
+COPY . .
+RUN mvn clean package -DskipTests
 
-# Copy the built JAR file into the container
-COPY target/*.jar app.jar
-
-# Expose port 8080 (Render will automatically replace with its assigned port)
+# Step 2: Run the built JAR
+FROM openjdk:17-jdk-slim
+WORKDIR /app
+COPY --from=build /app/target/*.jar app.jar
 EXPOSE 8080
-
-# Command to run the JAR
 ENTRYPOINT ["java", "-jar", "app.jar"]
